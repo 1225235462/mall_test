@@ -1,8 +1,10 @@
 package com.ningdong.mall_test.product;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@MapperScan("com.ningdong.mall_test.product.dao")
 @SpringBootApplication
 public class MallProductApplication {
 
