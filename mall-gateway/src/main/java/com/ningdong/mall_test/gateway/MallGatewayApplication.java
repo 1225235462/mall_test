@@ -1,4 +1,4 @@
-package com.ningdong.mall_test.coupon;
+package com.ningdong.mall_test.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,10 +6,10 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @EnableDiscoveryClient
 @SpringBootApplication
-public class MallCouponApplication {
+public class MallGatewayApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MallCouponApplication.class, args);
+        SpringApplication.run(MallGatewayApplication.class, args);
     }
 
 }
