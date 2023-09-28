@@ -1,6 +1,7 @@
 package com.ningdong.mall_test.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -30,6 +31,13 @@ import com.ningdong.common.utils.R;
 public class CategoryController {
     @Autowired
     private CategoryService categoryService;
+
+    //获取菜单树
+    @RequestMapping("/list/tree")
+    public R listTree(){
+        List<CategoryEntity> entities = categoryService.listWithTree();
+        return R.ok().put("data",entities);
+    }
 
     /**
      * 列表
