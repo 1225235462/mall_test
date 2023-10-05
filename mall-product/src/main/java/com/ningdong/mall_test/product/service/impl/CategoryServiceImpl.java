@@ -53,4 +53,12 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }).sorted(Comparator.comparingInt(CategoryEntity::getSort)).collect(Collectors.toList());
         return collect;
     }
+
+    //根据菜单的删除方法
+    @Override
+    public void removeMenuByIds(List<Long> asList) {
+        //TODO 需要检测当前菜单是否被其他地方引用
+
+        baseMapper.deleteBatchIds(asList);
+    }
 }
