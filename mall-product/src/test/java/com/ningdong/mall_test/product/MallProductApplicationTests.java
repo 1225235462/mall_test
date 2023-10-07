@@ -36,8 +36,6 @@ class MallProductApplicationTests {
 //////        EnvironmentVariableCredentialsProvider credentialsProvider = CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
 ////
 ////        // RAM用户的访问密钥（AccessKey ID和AccessKey Secret）。
-////        String accessKeyId = "LTAI5tSG6mJJkxCQWPESCA3W";
-////        String accessKeySecret = "CXdIrmxZMUxPH71cnzbNBoFV8awN2E";
 ////        // 使用代码嵌入的RAM用户的访问密钥配置访问凭证。
 ////        CredentialsProvider credentialsProvider = new DefaultCredentialProvider(accessKeyId, accessKeySecret);
 ////
