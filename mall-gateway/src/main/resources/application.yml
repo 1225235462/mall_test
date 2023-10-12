@@ -6,38 +6,38 @@ spring:
       config:
         server-addr: 192.168.203.146:8848
         namespace: 95967068-7e71-4c68-b730-f3bea612c9a6
-    gateway:
-      routes:
-        - id: test1
-          uri: https://www.baidu.com
-          predicates:
-            - Query=url,baidu
-
-        - id: test2
-          uri: https://www.qq.com
-          predicates:
-            - Query=url,qq
-
-        - id: product_route
-          uri: lb://mall-product
-          predicates:
-            - Path=/api/product/**
-          filters:
-            - RewritePath=/api/?(?<segment>.*),/$\{segment}
-
-        - id: thirdparty_route
-          uri: lb://mall-third-party
-          predicates:
-            - Path=/api/thirdparty/**
-          filters:
-            - RewritePath=/api/thirdparty/?(?<segment>.*),/$\{segment}
-
-        - id: admin_route
-          uri: lb://renren-fast
-          predicates:
-            - Path=/api/**
-          filters:
-            - RewritePath=/api/?(?<segment>.*),/renren-fast/$\{segment}
+#    gateway:
+#      routes:
+#        - id: test1
+#          uri: https://www.baidu.com
+#          predicates:
+#            - Query=url,baidu
+#
+#        - id: test2
+#          uri: https://www.qq.com
+#          predicates:
+#            - Query=url,qq
+#
+#        - id: product_route
+#          uri: lb://mall-product
+#          predicates:
+#            - Path=/api/product/**
+#          filters:
+#            - RewritePath=/api/?(?<segment>.*),/$\{segment}
+#
+#        - id: thirdparty_route
+#          uri: lb://mall-third-party
+#          predicates:
+#            - Path=/api/thirdparty/**
+#          filters:
+#            - RewritePath=/api/thirdparty/?(?<segment>.*),/$\{segment}
+#
+#        - id: admin_route
+#          uri: lb://renren-fast
+#          predicates:
+#            - Path=/api/**
+#          filters:
+#            - RewritePath=/api/?(?<segment>.*),/renren-fast/$\{segment}
 
   application:
     name: mall-gateway
