@@ -9,6 +9,7 @@ import com.ningdong.mall_test.product.service.AttrAttrgroupRelationService;
 import com.ningdong.mall_test.product.service.AttrService;
 import com.ningdong.mall_test.product.service.CategoryService;
 import com.ningdong.mall_test.product.vo.AttrGroupRelationVo;
+import com.ningdong.mall_test.product.vo.AttrGroupWithAttrsVo;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,12 @@ public class AttrGroupController {
 
     @Autowired
     private AttrAttrgroupRelationService relationService;
+
+    @GetMapping("/{catelogId}/withattr")
+    public R getAttrGroupWithAttrs(@PathVariable("catelogId") Long catrlogId){
+        List<AttrGroupWithAttrsVo> vos = attrGroupService.getAttrGroupWithAttrsByCatelogId(catrlogId);
+        return R.ok().put("data",vos);
+    }
 
     @GetMapping("/{attrgroupId}/attr/relation")
     public R attrRelation(@PathVariable("attrgroupId") Long attrgroupId){
