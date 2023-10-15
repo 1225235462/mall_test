@@ -34,16 +34,6 @@ public class CouponController {
     @Autowired
     private CouponService couponService;
 
-    @Value("${coupon.user.name}")
-    private String name;
-    @Value("${coupon.user.sex}")
-    private String sex;
-
-    @RequestMapping("/test")
-    public R test(){
-        return R.ok().put("name",name).put("sex",sex);
-    }
-
     @RequestMapping("/member/list")
     public R membercoupons(){
         CouponEntity couponEntity = new CouponEntity();

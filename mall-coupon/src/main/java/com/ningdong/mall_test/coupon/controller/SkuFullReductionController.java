@@ -3,13 +3,10 @@ package com.ningdong.mall_test.coupon.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.ningdong.common.to.SkuReductionTo;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.ningdong.mall_test.coupon.entity.SkuFullReductionEntity;
 import com.ningdong.mall_test.coupon.service.SkuFullReductionService;
@@ -30,6 +27,15 @@ import com.ningdong.common.utils.R;
 public class SkuFullReductionController {
     @Autowired
     private SkuFullReductionService skuFullReductionService;
+
+    @PostMapping("/saveinfo")
+//    @RequiresPermissions("coupon:skufullreduction:save")
+    public R saveInfo(@RequestBody SkuReductionTo skuReductionTo){
+//        skuFullReductionService.save(skuFullReduction);
+        skuFullReductionService.saveSkuReduction(skuReductionTo);
+
+        return R.ok();
+    }
 
     /**
      * 列表

@@ -13,7 +13,6 @@ spring:
         namespace: b6011108-fed6-4615-b528-8565402491b5
   config:
     import:
-      - nacos:mall-coupon.properties?refresh=true&group=dev
       - nacos:datasource.yml?refresh=true&group=dev
       - nacos:mybatis.yml?refresh=true&group=dev
       - nacos:other.yml?refresh=true&group=dev
