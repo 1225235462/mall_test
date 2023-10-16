@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
+import com.ningdong.common.to.MemberPrice;
 
 /**
  * Auto-generated: 2023-10-15 14:44:34

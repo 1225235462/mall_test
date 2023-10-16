@@ -7,10 +7,12 @@ import com.ningdong.mall_test.product.entity.*;
 import com.ningdong.mall_test.product.feign.CouponFeignService;
 import com.ningdong.mall_test.product.service.*;
 import com.ningdong.mall_test.product.vo.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +26,10 @@ import com.ningdong.common.utils.Query;
 
 import com.ningdong.mall_test.product.dao.SpuInfoDao;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 
+@Slf4j
 @Service("spuInfoService")
 public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> implements SpuInfoService {
 
@@ -63,6 +67,10 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         return new PageUtils(page);
     }
 
+    /**
+     * //TODO 高级部分待完善
+     * @param vo
+     */
     @Transactional
     @Override
     public void saveSpuInfo(SpuSaveVo vo) {
@@ -133,7 +141,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                     skuImagesEntity.setDefaultImg(img.getDefaultImg());
 
                     return skuImagesEntity;
-                }).collect(Collectors.toList());
+                }).filter(entity -> !ObjectUtils.isEmpty(entity.getImgUrl())).collect(Collectors.toList());
                 skuImagesService.saveBatch(skuImagesEntities);
 
                 List<Attr> attr = item.getAttr();
@@ -148,10 +156,13 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
                 SkuReductionTo skuReductionTo = new SkuReductionTo();
                 BeanUtils.copyProperties(item,skuReductionTo);
+                skuReductionTo.setMemberPrice(item.getMemberPrice());
                 skuReductionTo.setSkuId(skuId);
-                R r2 = couponFeignService.saveSkuRedution(skuReductionTo);
-                if(r2.getCode() != 0){
-                    log.error("远程保存sku优惠信息失败");
+                if(skuReductionTo.getFullCount() >0 || skuReductionTo.getFullPrice().compareTo(BigDecimal.ZERO) > 0) {
+                    R r2 = couponFeignService.saveSkuRedution(skuReductionTo);
+                    if (r2.getCode() != 0) {
+                        log.error("远程保存sku优惠信息失败");
+                    }
                 }
             });
         }
@@ -160,6 +171,41 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     @Override
     public void saveBaseSpuInfo(SpuInfoEntity spuInfoEntity) {
         this.baseMapper.insert(spuInfoEntity);
+    }
+
+    @Override
+    public PageUtils queryPageByCondition(Map<String, Object> params) {
+//        log.error("========================={}",params);
+
+        QueryWrapper<SpuInfoEntity> wrapper = new QueryWrapper<>();
+
+        Object key = params.get("key");
+        if(!ObjectUtils.isEmpty(key)){
+            wrapper.and(w -> {
+                w.eq("id",key).or().like("spu_name",key);
+            });
+        }
+
+        Object status = params.get("status");
+        if(!ObjectUtils.isEmpty(status)){
+            wrapper.eq("publish_status",status);
+        }
+
+        Object brandId = params.get("brandId");
+        if(!ObjectUtils.isEmpty(brandId)){
+            wrapper.eq("brand_id",brandId);
+        }
+
+        Object catelogId = params.get("catelogId");
+        if(!ObjectUtils.isEmpty(catelogId)){
+            wrapper.eq("catalog_id",catelogId);
+        }
+        IPage<SpuInfoEntity> page = this.page(
+                new Query<SpuInfoEntity>().getPage(params),
+                wrapper
+        );
+
+        return new PageUtils(page);
     }
 
 }
