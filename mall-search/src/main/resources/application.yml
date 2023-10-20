@@ -1,0 +1,14 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.203.146:8848
+      config:
+        server-addr: 192.168.203.146:8848
+        namespace: 0d72e482-7d0c-47c6-a543-e54f4cbc2b3c
+  config:
+    import:
+      - nacos:all.yml?refresh=true&group=dev
+
+  application:
+    name: mall-search
