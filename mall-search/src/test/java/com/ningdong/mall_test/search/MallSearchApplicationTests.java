@@ -1,14 +1,15 @@
 package com.ningdong.mall_test.search;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ningdong.mall_test.search.entity.UserEntity;
 import com.ningdong.mall_test.search.repository.UserRepository;
+import lombok.Data;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.client.RequestOptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @SpringBootTest
 public class MallSearchApplicationTests {
@@ -25,5 +26,27 @@ public class MallSearchApplicationTests {
         userEntity.setName("ning");
         userRepository.save(userEntity);
     }
+
+//    @Test
+//    public void save(){
+//        IndexRequest indexRequest = new IndexRequest("users");
+//        indexRequest.id("1");
+//        User user = new User();
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        String json = null;
+//        try {
+//            json = objectMapper.writeValueAsString(user);
+//        } catch (JsonProcessingException e) {
+//            e.printStackTrace();
+//        }
+//        indexRequest.source(json);
+//    }
+//
+//    @Data
+//    class User{
+//        private String name;
+//        private String gender;
+//        private Integer age;
+//    }
 
 }

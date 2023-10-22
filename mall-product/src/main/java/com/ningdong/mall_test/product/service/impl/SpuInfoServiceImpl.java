@@ -1,10 +1,15 @@
 package com.ningdong.mall_test.product.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ningdong.common.to.SkuReductionTo;
 import com.ningdong.common.to.SpuBoundTo;
+import com.ningdong.common.to.es.SkuEsModel;
 import com.ningdong.common.utils.R;
 import com.ningdong.mall_test.product.entity.*;
 import com.ningdong.mall_test.product.feign.CouponFeignService;
+import com.ningdong.mall_test.product.feign.SearchFeignservice;
+import com.ningdong.mall_test.product.feign.WareFeignService;
 import com.ningdong.mall_test.product.service.*;
 import com.ningdong.mall_test.product.vo.*;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -56,6 +59,18 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
     @Autowired
     CouponFeignService couponFeignService;
+
+    @Autowired
+    BrandService brandService;
+
+    @Autowired
+    CategoryService categoryService;
+
+    @Autowired
+    WareFeignService wareFeignService;
+
+    @Autowired
+    SearchFeignservice searchFeignservice;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -206,6 +221,67 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public void up(Long spuId) {
+        List<SkuInfoEntity> skus = skuInfoService.getSkusBySpuId(spuId);
+        List<Long> skuIds = skus.stream().map(SkuInfoEntity::getSkuId).collect(Collectors.toList());
+
+        List<ProductAttrValueEntity> baseAttrs = productAttrValueService.baseAttrListForSpu(spuId);
+        List<Long> attrIds = baseAttrs.stream().map(ProductAttrValueEntity::getAttrId).collect(Collectors.toList());
+
+        List<Long> searchAttrIds = attrService.selectSearchAttrIds(attrIds);
+
+        HashSet<Long> idSet = new HashSet<>(searchAttrIds);
+
+        List<SkuEsModel.Attrs> attrsList = baseAttrs.stream().filter(item -> idSet.contains(item.getAttrId())).map(item -> {
+            SkuEsModel.Attrs attrs = new SkuEsModel.Attrs();
+            BeanUtils.copyProperties(item, attrs);
+            return attrs;
+        }).collect(Collectors.toList());
+        Map<Long, Boolean> hasStockMap = null;
+        try {
+            Object vos = wareFeignService.getSkusHasStock(skuIds).get("data");
+            String jsonString = JSON.toJSONString(vos);
+            List<SkuHasStockVo> skuHasStockVos = JSON.parseArray(jsonString, SkuHasStockVo.class);
+
+            hasStockMap = skuHasStockVos.stream().collect(Collectors.toMap(SkuHasStockVo::getSkuId, SkuHasStockVo::getHasStock));
+//            log.error("==============={}",hasStockMap);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        Map<Long, Boolean> finalHasStockMap = hasStockMap;
+        List<SkuEsModel> upProducts = skus.stream().map(sku -> {
+            SkuEsModel skuEsModel = new SkuEsModel();
+            BeanUtils.copyProperties(sku,skuEsModel);
+            skuEsModel.setSkuPrice(sku.getPrice());
+            skuEsModel.setSkuImg(sku.getSkuDefaultImg());
+
+            if(finalHasStockMap == null){
+                skuEsModel.setHasStock(true);
+            }else {
+                skuEsModel.setHasStock(finalHasStockMap.get(sku.getSkuId()));
+            }
+
+            skuEsModel.setHotScore(0L);
+
+            BrandEntity brandEntity = brandService.getById(sku.getBrandId());
+            skuEsModel.setBrandName(brandEntity.getName());
+            skuEsModel.setBrandImg(brandEntity.getLogo());
+
+            CategoryEntity categoryEntity = categoryService.getById(sku.getCatalogId());
+            skuEsModel.setCatalogName(categoryEntity.getName());
+
+            skuEsModel.setAttrs(attrsList);
+
+            return skuEsModel;
+        }).collect(Collectors.toList());
+
+        searchFeignservice.productStatusUp(upProducts);
+
+        //TODO 根据执行结果改变sku状态
     }
 
 }
