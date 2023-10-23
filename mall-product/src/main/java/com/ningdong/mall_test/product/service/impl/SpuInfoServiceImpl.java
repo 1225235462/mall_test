@@ -2,6 +2,7 @@ package com.ningdong.mall_test.product.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ningdong.common.constant.ProductConstant;
 import com.ningdong.common.to.SkuReductionTo;
 import com.ningdong.common.to.SpuBoundTo;
 import com.ningdong.common.to.es.SkuEsModel;
@@ -279,9 +280,13 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             return skuEsModel;
         }).collect(Collectors.toList());
 
-        searchFeignservice.productStatusUp(upProducts);
+        R r = searchFeignservice.productStatusUp(upProducts);
 
-        //TODO 根据执行结果改变sku状态
+        if(r.getCode() == 0){
+            this.baseMapper.updateSpuStatus(spuId, ProductConstant.StatusEnum.SPU_UP.getCode());
+        }else{
+            //TODO 重复调用，接口幂等性、重试机制
+        }
     }
 
 }

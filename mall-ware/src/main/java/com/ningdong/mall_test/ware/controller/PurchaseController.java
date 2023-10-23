@@ -39,6 +39,7 @@ public class PurchaseController {
         return R.ok();
     }
 
+    //采购人员领取采购单
     @PostMapping("/received")
     public R received(@RequestBody List<Long> ids){
         purchaseService.received(ids);
@@ -46,6 +47,7 @@ public class PurchaseController {
         return R.ok();
     }
 
+    //将采购需求与采购单合并
     @PostMapping("/merge")
     public R merge(@RequestBody MergeVo mergeVo){
         purchaseService.mergePurchase(mergeVo);

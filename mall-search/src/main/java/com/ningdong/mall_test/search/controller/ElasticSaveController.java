@@ -20,8 +20,12 @@ public class ElasticSaveController {
 
     @PostMapping("/product")
     public R productStatusUp(@RequestBody List<SkuEsModel> skuEsModels){
-        productSaveService.productStatusUp(skuEsModels);
-
-        return R.ok();
+        try {
+            productSaveService.productStatusUp(skuEsModels);
+            return R.ok();
+        }catch (Exception e){
+            e.printStackTrace();
+            return R.error(1,"es索引保存失败");
+        }
     }
 }

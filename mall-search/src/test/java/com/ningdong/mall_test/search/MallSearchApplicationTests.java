@@ -24,7 +24,7 @@ public class MallSearchApplicationTests {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(1L);
         userEntity.setName("ning");
-        userRepository.save(userEntity);
+        userRepository.saveAll(null);
     }
 
 //    @Test

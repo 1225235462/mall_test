@@ -16,7 +16,7 @@ public class ProductSaveServiceImpl implements ProductSaveService {
     @Autowired
     ProductRepository productRepository;
 
-    public void productStatusUp(List<SkuEsModel> skuEsModels){
+    public void productStatusUp(List<SkuEsModel> skuEsModels) throws Exception{
         List<SkuEsEntity> entities = skuEsModels.stream().map(item -> {
             SkuEsEntity skuEsEntity = new SkuEsEntity();
             BeanUtils.copyProperties(item, skuEsEntity);
