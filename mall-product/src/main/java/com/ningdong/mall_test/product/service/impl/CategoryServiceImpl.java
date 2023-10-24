@@ -1,6 +1,7 @@
 package com.ningdong.mall_test.product.service.impl;
 
 import com.ningdong.mall_test.product.service.CategoryBrandRelationService;
+import com.ningdong.mall_test.product.vo.Catelog2Vo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import com.ningdong.mall_test.product.dao.CategoryDao;
 import com.ningdong.mall_test.product.entity.CategoryEntity;
 import com.ningdong.mall_test.product.service.CategoryService;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 
 @Service("categoryService")
@@ -82,6 +84,34 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         this.updateById(category);
         categoryBrandRelationService.updateCategory(category.getCatId(),category.getName());
 
+    }
+
+    @Override
+    public List<CategoryEntity> getLevel1Category() {
+        return this.baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
+    }
+
+    @Override
+    public Map<String, List<Catelog2Vo>> getCatalogJson() {
+        List<CategoryEntity> level1Category = getLevel1Category();
+
+        return level1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(),v -> {
+            List<CategoryEntity> entities2 = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", v.getCatId()));
+            if (!ObjectUtils.isEmpty(entities2)){
+                return entities2.stream().map(item -> {
+                    Catelog2Vo catelog2Vo = new Catelog2Vo(v.getCatId().toString(), null, item.getCatId().toString(), item.getName());
+                    List<CategoryEntity> entities3 = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", item.getCatId()));
+                    List<Catelog2Vo.Catelog3Vo> catelog3Vos = Collections.emptyList();
+                    if (!ObjectUtils.isEmpty(entities3)){
+                        catelog3Vos = entities3.stream().map(e3 -> new Catelog2Vo.Catelog3Vo(e3.getParentCid().toString(), e3.getCatId().toString(), e3.getName())).collect(Collectors.toList());
+                    }
+                    catelog2Vo.setCatalog3List(catelog3Vos);
+                    return catelog2Vo;
+                }).collect(Collectors.toList());
+            }else{
+                return Collections.emptyList();
+            }
+        }));
     }
 
     private List<Long> findParentPath(Long catelogId,List<Long> paths){
