@@ -93,14 +93,19 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public Map<String, List<Catelog2Vo>> getCatalogJson() {
-        List<CategoryEntity> level1Category = getLevel1Category();
+        //优化sql查询，直接取出全部数据
+
+        List<CategoryEntity> allEntities = baseMapper.selectList(null);
+
+
+        List<CategoryEntity> level1Category = getParentCid(allEntities,0L);
 
         return level1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(),v -> {
-            List<CategoryEntity> entities2 = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", v.getCatId()));
+            List<CategoryEntity> entities2 = getParentCid(allEntities,v.getCatId());
             if (!ObjectUtils.isEmpty(entities2)){
                 return entities2.stream().map(item -> {
                     Catelog2Vo catelog2Vo = new Catelog2Vo(v.getCatId().toString(), null, item.getCatId().toString(), item.getName());
-                    List<CategoryEntity> entities3 = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", item.getCatId()));
+                    List<CategoryEntity> entities3 = getParentCid(allEntities,item.getCatId());
                     List<Catelog2Vo.Catelog3Vo> catelog3Vos = Collections.emptyList();
                     if (!ObjectUtils.isEmpty(entities3)){
                         catelog3Vos = entities3.stream().map(e3 -> new Catelog2Vo.Catelog3Vo(e3.getParentCid().toString(), e3.getCatId().toString(), e3.getName())).collect(Collectors.toList());
@@ -112,6 +117,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                 return Collections.emptyList();
             }
         }));
+    }
+
+    private List<CategoryEntity> getParentCid(List<CategoryEntity> allEntities, Long parent_id) {
+        return allEntities.stream().filter(item -> item.getParentCid() == parent_id).collect(Collectors.toList());
+//        return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", v.getCatId()));
     }
 
     private List<Long> findParentPath(Long catelogId,List<Long> paths){
