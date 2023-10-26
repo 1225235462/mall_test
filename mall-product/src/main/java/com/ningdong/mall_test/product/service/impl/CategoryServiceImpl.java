@@ -1,8 +1,13 @@
 package com.ningdong.mall_test.product.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.ningdong.mall_test.product.service.CategoryBrandRelationService;
 import com.ningdong.mall_test.product.vo.Catelog2Vo;
+import org.redisson.api.RedissonClient;
+import org.redisson.client.RedisClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,12 +25,20 @@ import com.ningdong.mall_test.product.service.CategoryService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Resource;
+
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
 
     @Autowired
     CategoryBrandRelationService categoryBrandRelationService;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -92,7 +105,18 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     @Override
-    public Map<String, List<Catelog2Vo>> getCatalogJson() {
+    public Map<String, List<Catelog2Vo>> getCatalogJson(){
+        String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
+        if(!ObjectUtils.isEmpty(catalogJson)){
+            return JSON.parseObject(catalogJson,new TypeReference<Map<String, List<Catelog2Vo>>>(){});
+        }else {
+            Map<String, List<Catelog2Vo>> catalogJsonFromDb = getCatalogJsonFromDb();
+            stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(catalogJsonFromDb));
+            return catalogJsonFromDb;
+        }
+    }
+
+    public Map<String, List<Catelog2Vo>> getCatalogJsonFromDb() {
         //优化sql查询，直接取出全部数据
 
         List<CategoryEntity> allEntities = baseMapper.selectList(null);

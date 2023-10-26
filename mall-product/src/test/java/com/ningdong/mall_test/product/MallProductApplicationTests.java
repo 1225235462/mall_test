@@ -1,29 +1,28 @@
 package com.ningdong.mall_test.product;
 
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-//import com.aliyun.oss.common.auth.*;
-//import com.aliyun.oss.model.PutObjectRequest;
-//import com.aliyun.oss.model.PutObjectResult;
-//
-//import java.io.FileInputStream;
-//import java.io.InputStream;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+
+import javax.annotation.Resource;
+import java.util.UUID;
 
 
 @SpringBootTest
 class MallProductApplicationTests {
 
-//    @Autowired
-//    BrandService brandService;
-//
-//    @Test
-//    void contextLoads() {
-//        List<BrandEntity> list = brandService.list(new QueryWrapper<BrandEntity>().eq("brand_id",6L));
-//        list.forEach((item)->{
-//            System.out.println(item);
-//        });
-//    }
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
+
+    @Test
+    void contextLoads() {
+        ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+        operations.set("hello","world_"+ UUID.randomUUID().toString());
+
+        System.out.println(operations.get("hello"));
+    }
 
 //    @Autowired
 //    OSS ossClient;
