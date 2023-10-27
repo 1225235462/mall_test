@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.ningdong.mall_test.product.service.CategoryBrandRelationService;
 import com.ningdong.mall_test.product.vo.Catelog2Vo;
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.RedisClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +107,39 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public Map<String, List<Catelog2Vo>> getCatalogJson(){
+        String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
+        if(!ObjectUtils.isEmpty(catalogJson)){
+            return JSON.parseObject(catalogJson,new TypeReference<Map<String, List<Catelog2Vo>>>(){});
+        }else {
+            RLock lock = redissonClient.getLock("CatalogJson.lock");
+            Map<String, List<Catelog2Vo>> catalogJsonFromDb = null;
+            try {
+                while (true) {
+                    boolean b = lock.tryLock();
+                    if (b) {
+                        catalogJsonFromDb = getCatalogJsonFromDb();
+                        stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(catalogJsonFromDb));
+                        break;
+                    } else {
+                        Thread.sleep(50);
+                        String newCatalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
+                        if (!ObjectUtils.isEmpty(newCatalogJson)) {
+                            catalogJsonFromDb = JSON.parseObject(newCatalogJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {});
+                            break;
+                        }
+                    }
+                }
+            }catch (Exception ignored){
+
+            }finally {
+                lock.unlock();
+            }
+            return catalogJsonFromDb;
+        }
+    }
+
+//    @Override
+    public Map<String, List<Catelog2Vo>> getCatalogJson2(){
         String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
         if(!ObjectUtils.isEmpty(catalogJson)){
             return JSON.parseObject(catalogJson,new TypeReference<Map<String, List<Catelog2Vo>>>(){});
