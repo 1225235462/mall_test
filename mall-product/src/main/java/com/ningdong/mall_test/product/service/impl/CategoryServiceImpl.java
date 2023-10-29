@@ -8,6 +8,9 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.RedisClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -85,65 +88,108 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     @Override
     public Long[] findCatelogPath(Long catelogId) {
         List<Long> paths = new ArrayList<>();
-        List<Long> parentPath = findParentPath(catelogId,paths);
+        List<Long> parentPath = findParentPath(catelogId, paths);
 
         Collections.reverse(parentPath);
 
         return parentPath.toArray(new Long[0]);
     }
 
+//    @CacheEvict(value = "category",key = "'getLevel1Category'")
+    @Caching(evict = {
+            @CacheEvict(value = "category",key = "'getLevel1Category'"),
+            @CacheEvict(value = "category",key = "'getCatalogJson'")
+    })
     @Transactional
     @Override
     public void updateCascade(CategoryEntity category) {
         this.updateById(category);
-        categoryBrandRelationService.updateCategory(category.getCatId(),category.getName());
+        categoryBrandRelationService.updateCategory(category.getCatId(), category.getName());
 
     }
 
+    @Cacheable(value = {"category"},key = "#root.method.name")
     @Override
     public List<CategoryEntity> getLevel1Category() {
         return this.baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
     }
 
+
+    @Cacheable(value = {"category"},key = "#root.methodName",sync = true)
     @Override
     public Map<String, List<Catelog2Vo>> getCatalogJson(){
+        List<CategoryEntity> allEntities = baseMapper.selectList(null);
+
+        List<CategoryEntity> level1Category = getParentCid(allEntities, 0L);
+
+        return level1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
+            List<CategoryEntity> entities2 = getParentCid(allEntities, v.getCatId());
+            if (!ObjectUtils.isEmpty(entities2)) {
+                return entities2.stream().map(item -> {
+                    Catelog2Vo catelog2Vo = new Catelog2Vo(v.getCatId().toString(), null, item.getCatId().toString(), item.getName());
+                    List<CategoryEntity> entities3 = getParentCid(allEntities, item.getCatId());
+                    List<Catelog2Vo.Catelog3Vo> catelog3Vos = Collections.emptyList();
+                    if (!ObjectUtils.isEmpty(entities3)) {
+                        catelog3Vos = entities3.stream().map(e3 -> new Catelog2Vo.Catelog3Vo(e3.getParentCid().toString(), e3.getCatId().toString(), e3.getName())).collect(Collectors.toList());
+                    }
+                    catelog2Vo.setCatalog3List(catelog3Vos);
+                    return catelog2Vo;
+                }).collect(Collectors.toList());
+            } else {
+                return Collections.emptyList();
+            }
+        }));
+    }
+
+    /**
+     * 使用redisson分布式锁实现缓存与数据库的读写同步
+     *
+     * @return
+     */
+//    @Override
+    public Map<String, List<Catelog2Vo>> getCatalogJsonRedisson() {
         String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
-        if(!ObjectUtils.isEmpty(catalogJson)){
-            return JSON.parseObject(catalogJson,new TypeReference<Map<String, List<Catelog2Vo>>>(){});
-        }else {
+        if (!ObjectUtils.isEmpty(catalogJson)) {
+            return JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {
+            });
+        } else {
             RLock lock = redissonClient.getLock("CatalogJson.lock");
             Map<String, List<Catelog2Vo>> catalogJsonFromDb = null;
-            try {
-                while (true) {
-                    boolean b = lock.tryLock();
-                    if (b) {
+            while (true) {
+                boolean b = lock.tryLock();
+                if (b) {
+                    try {
                         catalogJsonFromDb = getCatalogJsonFromDb();
                         stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(catalogJsonFromDb));
-                        break;
-                    } else {
+                    }finally {
+                        lock.unlock();
+                    }
+                    break;
+                } else {
+                    try {
                         Thread.sleep(50);
-                        String newCatalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
-                        if (!ObjectUtils.isEmpty(newCatalogJson)) {
-                            catalogJsonFromDb = JSON.parseObject(newCatalogJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {});
-                            break;
-                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    String newCatalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
+                    if (!ObjectUtils.isEmpty(newCatalogJson)) {
+                        catalogJsonFromDb = JSON.parseObject(newCatalogJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {
+                        });
+                        break;
                     }
                 }
-            }catch (Exception ignored){
-
-            }finally {
-                lock.unlock();
             }
             return catalogJsonFromDb;
         }
     }
 
-//    @Override
-    public Map<String, List<Catelog2Vo>> getCatalogJson2(){
+    //    @Override
+    public Map<String, List<Catelog2Vo>> getCatalogJson2() {
         String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
-        if(!ObjectUtils.isEmpty(catalogJson)){
-            return JSON.parseObject(catalogJson,new TypeReference<Map<String, List<Catelog2Vo>>>(){});
-        }else {
+        if (!ObjectUtils.isEmpty(catalogJson)) {
+            return JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {
+            });
+        } else {
             Map<String, List<Catelog2Vo>> catalogJsonFromDb = getCatalogJsonFromDb();
             stringRedisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(catalogJsonFromDb));
             return catalogJsonFromDb;
@@ -156,22 +202,22 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         List<CategoryEntity> allEntities = baseMapper.selectList(null);
 
 
-        List<CategoryEntity> level1Category = getParentCid(allEntities,0L);
+        List<CategoryEntity> level1Category = getParentCid(allEntities, 0L);
 
-        return level1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(),v -> {
-            List<CategoryEntity> entities2 = getParentCid(allEntities,v.getCatId());
-            if (!ObjectUtils.isEmpty(entities2)){
+        return level1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
+            List<CategoryEntity> entities2 = getParentCid(allEntities, v.getCatId());
+            if (!ObjectUtils.isEmpty(entities2)) {
                 return entities2.stream().map(item -> {
                     Catelog2Vo catelog2Vo = new Catelog2Vo(v.getCatId().toString(), null, item.getCatId().toString(), item.getName());
-                    List<CategoryEntity> entities3 = getParentCid(allEntities,item.getCatId());
+                    List<CategoryEntity> entities3 = getParentCid(allEntities, item.getCatId());
                     List<Catelog2Vo.Catelog3Vo> catelog3Vos = Collections.emptyList();
-                    if (!ObjectUtils.isEmpty(entities3)){
+                    if (!ObjectUtils.isEmpty(entities3)) {
                         catelog3Vos = entities3.stream().map(e3 -> new Catelog2Vo.Catelog3Vo(e3.getParentCid().toString(), e3.getCatId().toString(), e3.getName())).collect(Collectors.toList());
                     }
                     catelog2Vo.setCatalog3List(catelog3Vos);
                     return catelog2Vo;
                 }).collect(Collectors.toList());
-            }else{
+            } else {
                 return Collections.emptyList();
             }
         }));
@@ -182,11 +228,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 //        return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", v.getCatId()));
     }
 
-    private List<Long> findParentPath(Long catelogId,List<Long> paths){
+    private List<Long> findParentPath(Long catelogId, List<Long> paths) {
         paths.add(catelogId);
         CategoryEntity byId = this.getById(catelogId);
-        if(byId.getParentCid() != 0){
-            findParentPath(byId.getParentCid(),paths);
+        if (byId.getParentCid() != 0) {
+            findParentPath(byId.getParentCid(), paths);
         }
         return paths;
     }
