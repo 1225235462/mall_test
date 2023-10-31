@@ -12,7 +12,7 @@ public class SearchParam {
 
     private String sort;
 
-    private Integer hasStock;
+    private Integer hasStock = 1;
 
     private String skuPrice;
 
@@ -20,5 +20,5 @@ public class SearchParam {
 
     private List<String> attrs;
 
-    private Integer pageNum;
+    private Integer pageNum = 1;
 }
