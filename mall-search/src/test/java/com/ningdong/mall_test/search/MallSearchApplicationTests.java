@@ -38,7 +38,7 @@ public class MallSearchApplicationTests {
     public void contextLoads() {
 //        List<SkuEsEntity> res = productRepository.findBySkuTitleAndSpuId("华为",3L);
 
-        System.out.println("_500".startsWith("_"));
+        System.out.println((int)Math.ceil((double) 5L/4L));
     }
 
 }

@@ -1,13 +1,13 @@
 package com.ningdong.mall_test.search.vo;
 
-import com.ningdong.common.to.es.SkuEsModel;
+import com.ningdong.mall_test.search.entity.SkuEsEntity;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class SearchResult {
-    private List<SkuEsModel> products;
+    private List<SkuEsEntity> products;
 
     private Integer pageNum;
 
