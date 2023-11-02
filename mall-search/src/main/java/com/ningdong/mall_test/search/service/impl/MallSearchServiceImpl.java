@@ -128,7 +128,11 @@ public class MallSearchServiceImpl implements MallSearchService {
         }
 
         //分页，指定页码和每页展示商品数
-        builder.withPageable(PageRequest.of(param.getPageNum()-1, EsConstant.PRODUCT_PAGESIZE));
+        if(!ObjectUtils.isEmpty(param.getPageNum()) && param.getPageNum() > 0) {
+            builder.withPageable(PageRequest.of(param.getPageNum() - 1, EsConstant.PRODUCT_PAGESIZE));
+        }else {
+            builder.withPageable(PageRequest.of(0, EsConstant.PRODUCT_PAGESIZE));
+        }
 
         //关键词高亮
         if (!ObjectUtils.isEmpty(param.getKeyword())){
