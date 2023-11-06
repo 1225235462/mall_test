@@ -1008,12 +1008,15 @@
                 <div class="filter">
                     <!--综合排序-->
                     <div class="filter_top">
-                        <div class="filter_top_left">
-                            <a href="/static/search/#">综合排序</a>
-                            <a href="/static/search/#">销量</a>
-                            <a href="/static/search/#">价格</a>
+                        <div class="filter_top_left" th:with="p = ${param.sort},priceRange = ${param.skuPrice}">
+                            <a th:class="${!#strings.isEmpty(p) && #strings.startsWith(p,'hotScore') && #strings.endsWith(p,'desc')?'sort-a desc':'sort-a'}" th:attr="style=${(#strings.isEmpty(p) || #strings.startsWith(p,'hotScore'))?'color:#FFF;border-color:#e4393c;background:#e4393c':'color:#333;border-color:#CCC;background:#FFF'}" sort="hotScore" href="/static/search/#">综合排序 [[ ${!#strings.isEmpty(p) && #strings.startsWith(p,'hotScore') && #strings.endsWith(p,'asc')?'↑':'↓'} ]]</a>
+                            <a th:class="${!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount') && #strings.endsWith(p,'desc')?'sort-a desc':'sort-a'}" th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount'))?'color:#FFF;border-color:#e4393c;background:#e4393c':'color:#333;border-color:#CCC;background:#FFF'}" sort="saleCount" href="/static/search/#">销量 [[ ${!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount') && #strings.endsWith(p,'asc')?'↑':'↓'} ]]</a>
+                            <a th:class="${!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice') && #strings.endsWith(p,'desc')?'sort-a desc':'sort-a'}" th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice'))?'color:#FFF;border-color:#e4393c;background:#e4393c':'color:#333;border-color:#CCC;background:#FFF'}" sort="skuPrice" href="/static/search/#">价格 [[ ${!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice') && #strings.endsWith(p,'asc')?'↑':'↓'} ]]</a>
                             <a href="/static/search/#">评论分</a>
                             <a href="/static/search/#">上架时间</a>
+                            <input id="skuPriceFrom" type="number" style="width: 100px;margin-left: 30px" th:value="${#strings.isEmpty(priceRange)?'':#strings.substringBefore(priceRange,'_')}"> -
+                            <input id="skuPriceTo" type="number" style="width: 100px" th:value="${#strings.isEmpty(priceRange)?'':#strings.substringAfter(priceRange,'_')}">
+                            <button id="skuPriceSearchBtn">确定</button>
                         </div>
                         <div class="filter_top_right">
                             <span class="fp-text">
@@ -1121,8 +1124,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="/static/search/#">
-                                        <i></i>
+                                    <a th:with="val = ${param.hasStock}">
+                                        <input id="showHasStock" type="checkbox" th:checked="${#strings.equals(param.hasStock,'1')}">
                                         仅显示有货
                                     </a>
                                 </li>
@@ -1945,12 +1948,13 @@
     })
 
     function searchProducts(name,val) {
-        var href = location.href;
-        if(href.indexOf("?") !== -1) {
-            location.href = location.href + "&" + name + "=" + val;
-        }else {
-            location.href = location.href + "?" + name + "=" + val;
-        }
+        // var href = location.href;
+        // if(href.indexOf("?") !== -1) {
+        //     location.href = location.href + "&" + name + "=" + val;
+        // }else {
+        //     location.href = location.href + "?" + name + "=" + val;
+        // }
+        location.href = replaceAndAddParamVal(location.href,name,val);
     }
 
     function searchByKeyword(){
@@ -1960,19 +1964,84 @@
     $(".page_a").click(function (){
         var pn = $(this).attr("pn");
         var href = location.href;
-        if (href.indexOf("pageNum") != -1){
-            location.href = replaceParamVal(href,"pageNum",pn);
-        }else {
-            location.href = location.href + '&pageNum=' + pn;
-        }
+        // if (href.indexOf("pageNum") != -1){
+        //     location.href = replaceParamVal(href,"pageNum",pn);
+        // }else {
+        //     location.href = location.href + '&pageNum=' + pn;
+        // }
+        location.href = replaceAndAddParamVal(location.href,"pageNum",pn);
     })
 
-    function replaceParamVal(url,paramName,val){
+    // function replaceParamVal(url,paramName,val){
+    //     var oUrl = url.toString();
+    //     var re = eval('/(' + paramName + '=)([^&]*)/gi');
+    //     var nUrl = oUrl.replace(re,paramName + '=' + val);
+    //     return nUrl;
+    // }
+
+    function replaceAndAddParamVal(url,paramName,val){
         var oUrl = url.toString();
-        var re = eval('/(' + paramName + '=)([^&]*)/gi');
-        var nUrl = oUrl.replace(re,paramName + '=' + val);
-        return nUrl;
+        if (oUrl.indexOf(paramName) != -1) {
+            var re = eval('/(' + paramName + '=)([^&]*)/gi');
+            var nUrl = oUrl.replace(re, paramName + '=' + val);
+            return nUrl;
+        }else {
+            var nUrl = "";
+            if (oUrl.indexOf("?") != -1){
+                nUrl = oUrl + "&" +paramName + "=" + val;
+            }else {
+                nUrl = oUrl + "?" +paramName + "=" + val;
+            }
+            return nUrl;
+        }
     }
+
+    $(".sort-a").click(function (){
+        // //修改样式
+        // $(".sort-a").css({"color":"#333","border-color":"#CCC","background":"#FFF"});
+        // $(".sort-a").each(function (){
+        //     var text = $(this).text().replace("↑","").replace("↓","");
+        //     $(this).text(text);
+        // })
+        // $(this).css({"color":"#FFF","border-color":"#e4393c","background":"#e4393c"});
+        //
+        // $(this).toggleClass("desc");
+        // if($(this).hasClass("desc")){
+        //     var text = $(this).text().replace("↑","");
+        //     text = text + "↓";
+        //     $(this).text(text);
+        // }else{
+        //     var text = $(this).text().replace("↓","");
+        //     text = text + "↑";
+        //     $(this).text(text);
+        // }
+
+        $(this).toggleClass("desc");
+
+        //跳转
+        var attr = $(this).attr("sort");
+        var sort = $(this).hasClass("desc")?attr+"_desc":attr+"_asc";
+        location.href = replaceAndAddParamVal(location.href,"sort",sort);
+
+        return false;
+    })
+
+    $("#skuPriceSearchBtn").click(function (){
+        var from = $("#skuPriceFrom").val();
+        var to = $("#skuPriceTo").val();
+
+        var query = from + '_' + to;
+
+        location.href = replaceAndAddParamVal(location.href,"skuPrice",query);
+    })
+
+    $("#showHasStock").change(function (){
+        if ($(this).prop("checked")){
+            location.href = replaceAndAddParamVal(location.href,"hasStock",1);
+        }else {
+            location.href = replaceAndAddParamVal(location.href,"hasStock",0);
+        }
+    })
 </script>
 </body>
 </html>
