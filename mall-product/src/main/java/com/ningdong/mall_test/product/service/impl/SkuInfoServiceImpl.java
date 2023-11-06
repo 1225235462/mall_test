@@ -1,5 +1,6 @@
 package com.ningdong.mall_test.product.service.impl;
 
+import com.ningdong.mall_test.product.vo.SkuItemVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -85,6 +86,12 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     @Override
     public List<SkuInfoEntity> getSkusBySpuId(Long spuId) {
         return this.list(new QueryWrapper<SkuInfoEntity>().eq("spu_id",spuId));
+    }
+
+    @Override
+    public SkuItemVo item(Long skuId) {
+
+        return null;
     }
 
 }
