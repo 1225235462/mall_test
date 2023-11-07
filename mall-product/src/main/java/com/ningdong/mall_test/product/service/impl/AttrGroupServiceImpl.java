@@ -64,18 +64,17 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
     }
 
     @Override
-    public List<AttrGroupWithAttrsVo> getAttrGroupWithAttrsByCatelogId(Long catrlogId) {
+    public List<AttrGroupWithAttrsVo> getAttrGroupWithAttrsByCatelogId(Long catalogId) {
 
-        List<AttrGroupEntity> attrGroupEntities = this.list(new QueryWrapper<AttrGroupEntity>().eq("catelog_id", catrlogId));
+        List<AttrGroupEntity> attrGroupEntities = this.list(new QueryWrapper<AttrGroupEntity>().eq("catelog_id", catalogId));
 
-        List<AttrGroupWithAttrsVo> collect = attrGroupEntities.stream().map(item -> {
+        return attrGroupEntities.stream().map(item -> {
             AttrGroupWithAttrsVo attrGroupWithAttrsVo = new AttrGroupWithAttrsVo();
             BeanUtils.copyProperties(item, attrGroupWithAttrsVo);
             List<AttrEntity> attrs = attrService.getRelationAttr(attrGroupWithAttrsVo.getAttrGroupId());
             attrGroupWithAttrsVo.setAttrs(attrs);
             return attrGroupWithAttrsVo;
         }).collect(Collectors.toList());
-        return collect;
     }
 
 }

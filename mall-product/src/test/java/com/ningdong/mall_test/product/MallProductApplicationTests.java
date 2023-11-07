@@ -1,5 +1,7 @@
 package com.ningdong.mall_test.product;
 
+import com.ningdong.mall_test.product.dao.SkuSaleAttrValueDao;
+import com.ningdong.mall_test.product.vo.SkuItemVo;
 import org.junit.jupiter.api.Test;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -9,6 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -20,6 +23,16 @@ class MallProductApplicationTests {
 
     @Resource
     RedissonClient redissonClient;
+
+    @Autowired
+    SkuSaleAttrValueDao skuSaleAttrValueDao;
+
+
+    @Test
+    void testDao(){
+        List<SkuItemVo.SkuItemSaleAttrVo> saleAttrsBySpuId = skuSaleAttrValueDao.getSaleAttrsBySpuId(3L);
+        System.out.println(saleAttrsBySpuId);
+    }
 
     @Test
     void contextLoads() {

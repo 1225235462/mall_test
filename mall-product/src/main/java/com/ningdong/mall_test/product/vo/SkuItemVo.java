@@ -26,7 +26,7 @@ public class SkuItemVo {
 
         private String attrName;
 
-        private List<String> attrValues;
+        private String attrValues;
     }
 
     @Data
