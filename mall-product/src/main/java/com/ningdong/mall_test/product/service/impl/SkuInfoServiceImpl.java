@@ -1,8 +1,6 @@
 package com.ningdong.mall_test.product.service.impl;
 
-import com.ningdong.mall_test.product.entity.SkuImagesEntity;
-import com.ningdong.mall_test.product.entity.SkuSaleAttrValueEntity;
-import com.ningdong.mall_test.product.entity.SpuInfoDescEntity;
+import com.ningdong.mall_test.product.entity.*;
 import com.ningdong.mall_test.product.service.*;
 import com.ningdong.mall_test.product.vo.AttrGroupWithAttrsVo;
 import com.ningdong.mall_test.product.vo.SkuItemVo;
@@ -22,7 +20,6 @@ import com.ningdong.common.utils.PageUtils;
 import com.ningdong.common.utils.Query;
 
 import com.ningdong.mall_test.product.dao.SkuInfoDao;
-import com.ningdong.mall_test.product.entity.SkuInfoEntity;
 import org.springframework.util.ObjectUtils;
 
 
@@ -41,6 +38,9 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
 
     @Autowired
     AttrGroupService attrGroupService;
+
+    @Autowired
+    ProductAttrValueService productAttrValueService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -130,9 +130,12 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
             spuItemAttrGroupVo.setGroupName(item.getAttrGroupName());
 
             List<SkuItemVo.SpuBaseAttrVo> baseAttrVos = item.getAttrs().stream().map(attr -> {
+                Long attrId = attr.getAttrId();
+                ProductAttrValueEntity productAttrValueEntity = productAttrValueService.getOne(new QueryWrapper<ProductAttrValueEntity>().eq("spu_id", spuId).eq("attr_id", attrId));
+
                 SkuItemVo.SpuBaseAttrVo spuBaseAttrVo = new SkuItemVo.SpuBaseAttrVo();
-                spuBaseAttrVo.setAttrName(attr.getAttrName());
-                spuBaseAttrVo.setAttrValue(attr.getValueSelect());
+                spuBaseAttrVo.setAttrName(productAttrValueEntity.getAttrName());
+                spuBaseAttrVo.setAttrValue(productAttrValueEntity.getAttrValue());
                 return spuBaseAttrVo;
             }).collect(Collectors.toList());
             spuItemAttrGroupVo.setAttrs(baseAttrVos);

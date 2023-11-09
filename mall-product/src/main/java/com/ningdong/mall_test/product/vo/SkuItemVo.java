@@ -12,6 +12,8 @@ public class SkuItemVo {
 
     private SkuInfoEntity info;
 
+    private boolean hasStock = true;
+
     private List<SkuImagesEntity> images;
 
     private List<SkuItemSaleAttrVo> saleAttr;
@@ -26,7 +28,14 @@ public class SkuItemVo {
 
         private String attrName;
 
-        private String attrValues;
+        private List<SkuItemVo.AttrValueWithSkuIdVo> attrValues;
+    }
+
+    @Data
+    public static class AttrValueWithSkuIdVo{
+        private String attrValue;
+
+        private String skuIds;
     }
 
     @Data
