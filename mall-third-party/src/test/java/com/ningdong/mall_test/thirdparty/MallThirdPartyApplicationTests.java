@@ -1,6 +1,7 @@
 package com.ningdong.mall_test.thirdparty;
 
 import com.aliyun.oss.*;
+import com.ningdong.mall_test.thirdparty.component.SmsComponent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,13 +13,20 @@ import java.io.InputStream;
 
 @SpringBootTest
 class MallThirdPartyApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
-
     @Autowired
     OSS ossClient;
+
+    @Autowired
+    SmsComponent smsComponent;
+
+    @Test
+    public void testSendCode(){
+        try {
+            smsComponent.sendSmsCode("18948869629","1996");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Test
     public void testUpload() throws Exception {
