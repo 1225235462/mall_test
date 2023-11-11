@@ -1,6 +1,7 @@
 package com.ningdong.mall_test.thirdparty.component;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.aliyun.tea.*;
@@ -8,6 +9,7 @@ import com.aliyun.tea.*;
 @ConfigurationProperties(prefix = "spring.cloud.alicloud")
 @Component
 @Data
+@Slf4j
 public class SmsComponent {
 
     private String accessKey;
@@ -26,6 +28,7 @@ public class SmsComponent {
     }
 
     public void sendSmsCode(String phone,String code) throws Exception {
+//        log.error("key{} key{}",phone,code);
         com.aliyun.dysmsapi20170525.Client client = createClient(accessKey,secretKey);
         com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
                 .setSignName("阿里云短信测试")

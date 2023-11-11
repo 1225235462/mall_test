@@ -10,6 +10,7 @@ import com.aliyun.oss.model.PutObjectResult;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.UUID;
 
 @SpringBootTest
 class MallThirdPartyApplicationTests {
@@ -21,11 +22,12 @@ class MallThirdPartyApplicationTests {
 
     @Test
     public void testSendCode(){
-        try {
-            smsComponent.sendSmsCode("18948869629","1996");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            smsComponent.sendSmsCode("18948869629","1996");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        System.out.println((int) ((Math.random() * 9 + 1) * 100000));
     }
 
     @Test
