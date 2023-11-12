@@ -24,6 +24,9 @@
 		</header>
 		<section>
 			<form action="/regist" method="post" class="one">
+				<div class="tips" style="color: red" th:text="${errors!=null?(#maps.containsKey(errors,'msg')?errors.msg:''):''}">
+
+				</div>
 				<div class="register-box">
 					<label class="username_label">用 户 名
 			<input name="userName" maxlength="20" type="text" placeholder="您的用户名和登录名" >
@@ -246,17 +249,17 @@
 				code();
 				$("#code").click(code);
 				//	验证码验证
-				$('input').eq(4).blur(function() {
-						if($(this).val().length == 0) {
-							$(this).parent().next().next("div").text("");
-							$(this).parent().next().next("div").css("color", '#ccc');
-						} else if($(this).val().toUpperCase() != $("#code").text().toUpperCase()) {
-							$(this).parent().next().next("div").text("验证码不正确");
-							$(this).parent().next().next("div").css("color", 'red');
-						} else {
-							$(this).parent().next().next("div").text("");
-						}
-					})
+				// $('input').eq(4).blur(function() {
+				// 		if($(this).val().length == 0) {
+				// 			$(this).parent().next().next("div").text("");
+				// 			$(this).parent().next().next("div").css("color", '#ccc');
+				// 		} else if($(this).val().toUpperCase() != $("#code").text().toUpperCase()) {
+				// 			$(this).parent().next().next("div").text("验证码不正确");
+				// 			$(this).parent().next().next("div").css("color", 'red');
+				// 		} else {
+				// 			$(this).parent().next().next("div").text("");
+				// 		}
+				// 	})
 					//	提交按钮
 				// $("#submit_btn").click(function(e) {
 				// 	for(var j = 0; j < 5; j++) {

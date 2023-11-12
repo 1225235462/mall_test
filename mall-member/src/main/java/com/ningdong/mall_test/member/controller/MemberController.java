@@ -3,14 +3,15 @@ package com.ningdong.mall_test.member.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.ningdong.mall_test.member.exception.PhoneExistException;
+import com.ningdong.mall_test.member.exception.UsernameExistException;
 import com.ningdong.mall_test.member.feign.CouponFeignService;
+import com.ningdong.mall_test.member.vo.MemberLoginVo;
+import com.ningdong.mall_test.member.vo.MemberRegistVo;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.*;
 
 import com.ningdong.mall_test.member.entity.MemberEntity;
 import com.ningdong.mall_test.member.service.MemberService;
@@ -34,6 +35,36 @@ public class MemberController {
 
     @Autowired
     CouponFeignService couponFeignService;
+
+    @GetMapping("/test")
+    public R testFeign(){
+        return R.error("错误");
+    }
+
+    @PostMapping("/login")
+    public R loginMember(@RequestBody MemberLoginVo vo){
+        MemberEntity entity = memberService.login(vo);
+
+        if (!ObjectUtils.isEmpty(entity)) {
+            return R.ok();
+        }else {
+            return R.error(15003,"账号密码错误");
+        }
+    }
+
+    @PostMapping("/regist")
+    public R registMember(@RequestBody MemberRegistVo vo){
+
+        try {
+            memberService.regist(vo);
+        }catch (PhoneExistException e){
+            return R.error(15001,e.getMessage());
+        }catch (UsernameExistException e){
+            return R.error(15002,e.getMessage());
+        }
+
+        return R.ok();
+    }
 
     @RequestMapping("/coupons")
     public R test(){
