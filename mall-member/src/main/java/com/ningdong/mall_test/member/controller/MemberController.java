@@ -3,6 +3,7 @@ package com.ningdong.mall_test.member.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.ningdong.mall_test.member.entity.GiteeUserInfoEntity;
 import com.ningdong.mall_test.member.exception.PhoneExistException;
 import com.ningdong.mall_test.member.exception.UsernameExistException;
 import com.ningdong.mall_test.member.feign.CouponFeignService;
@@ -39,6 +40,17 @@ public class MemberController {
     @GetMapping("/test")
     public R testFeign(){
         return R.error("错误");
+    }
+
+    @PostMapping("/oauth2/login")
+    public R oauthLoginMember(@RequestBody GiteeUserInfoEntity vo){
+        MemberEntity entity = memberService.login(vo);
+
+        if (!ObjectUtils.isEmpty(entity)) {
+            return R.ok().setData(entity);
+        }else {
+            return R.error(15004,"登录失败");
+        }
     }
 
     @PostMapping("/login")

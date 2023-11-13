@@ -2,6 +2,7 @@ package com.ningdong.mall_test.member.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.ningdong.common.utils.PageUtils;
+import com.ningdong.mall_test.member.entity.GiteeUserInfoEntity;
 import com.ningdong.mall_test.member.entity.MemberEntity;
 import com.ningdong.mall_test.member.exception.PhoneExistException;
 import com.ningdong.mall_test.member.exception.UsernameExistException;
@@ -28,5 +29,7 @@ public interface MemberService extends IService<MemberEntity> {
     void checkUsernameUnique(String username) throws UsernameExistException;
 
     MemberEntity login(MemberLoginVo vo);
+
+    MemberEntity login(GiteeUserInfoEntity vo);
 }
 

@@ -1,6 +1,7 @@
 package com.ningdong.mall_test.auth.feign;
 
 import com.ningdong.common.utils.R;
+import com.ningdong.mall_test.auth.Entity.GiteeUserInfoEntity;
 import com.ningdong.mall_test.auth.vo.UserLoginVo;
 import com.ningdong.mall_test.auth.vo.UserRegistVo;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -18,4 +19,7 @@ public interface MemberFeignService {
 
     @PostMapping("/member/member/login")
     public R loginMember(@RequestBody UserLoginVo vo);
+
+    @PostMapping("/member/member/oauth2/login")
+    public R oauthLoginMember(@RequestBody GiteeUserInfoEntity vo);
 }

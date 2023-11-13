@@ -1,5 +1,6 @@
 package com.ningdong.mall_test.member.service.impl;
 
+import com.ningdong.mall_test.member.entity.GiteeUserInfoEntity;
 import com.ningdong.mall_test.member.entity.MemberLevelEntity;
 import com.ningdong.mall_test.member.exception.PhoneExistException;
 import com.ningdong.mall_test.member.exception.UsernameExistException;
@@ -91,6 +92,41 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
             }else {
                 return null;
             }
+        }
+    }
+
+    @Override
+    public MemberEntity login(GiteeUserInfoEntity vo) {
+        long uid = vo.getId();
+
+        MemberEntity entity = this.baseMapper.selectOne(new QueryWrapper<MemberEntity>().eq("social_uid", uid));
+        if (!ObjectUtils.isEmpty(entity)){
+            MemberEntity updateData = new MemberEntity();
+            updateData.setId(entity.getId());
+            updateData.setAccessToken(vo.getAccessToken());
+            updateData.setExpiresIn(vo.getExpiresIn());
+
+            this.baseMapper.updateById(updateData);
+
+            entity.setAccessToken(vo.getAccessToken());
+            entity.setExpiresIn(vo.getExpiresIn());
+
+            return entity;
+        }else {
+            MemberEntity registData = new MemberEntity();
+            registData.setUsername(vo.getLogin());
+            registData.setEmail(vo.getEmail());
+            registData.setNickname(vo.getName());
+
+            MemberLevelEntity default_status = memberLevelService.getOne(new QueryWrapper<MemberLevelEntity>().eq("default_status", 1));
+            registData.setLevelId(default_status.getId());
+
+            registData.setSocialUid(String.valueOf(vo.getId()));
+            registData.setAccessToken(vo.getAccessToken());
+            registData.setExpiresIn(vo.getExpiresIn());
+
+            this.baseMapper.insert(registData);
+            return registData;
         }
     }
 }

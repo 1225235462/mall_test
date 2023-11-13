@@ -5,7 +5,9 @@ import com.ningdong.mall_test.auth.feign.MemberFeignService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 
 @SpringBootTest
